@@ -1,4 +1,4 @@
-package com.bugpet.project.service;
+package com.bugpet.project.service.bugpet;
 
 import com.bugpet.project.dto.DamageStructureDto;
 import com.bugpet.project.dto.PetDto;

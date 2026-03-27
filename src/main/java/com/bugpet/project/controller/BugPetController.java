@@ -2,7 +2,7 @@ package com.bugpet.project.controller;
 
 import com.bugpet.project.dto.DamageStructureDto;
 import com.bugpet.project.dto.PetDto;
-import com.bugpet.project.service.BugPetService;
+import com.bugpet.project.service.bugpet.BugPetService;
 import com.bugpet.project.singleton.AppLogger;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
