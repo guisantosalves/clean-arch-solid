@@ -1,12 +1,16 @@
 package com.bugpet.project.service.bugpet;
 
 import com.bugpet.project.dto.DamageStructureDto;
+import com.bugpet.project.dto.DiedPetDto;
 import com.bugpet.project.dto.PetDto;
 import com.bugpet.project.entity.Pet;
 import com.bugpet.project.mapper.PetMapper;
 import com.bugpet.project.repository.PetRepository;
+import com.bugpet.project.service.producers.PetProducer;
 import com.bugpet.project.strategy.damage.CombatSystem;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +21,7 @@ public class BugPetServiceImpl implements BugPetService {
 
   private final PetRepository petRepo;
   private final PetMapper petMapper;
+  private final PetProducer petProducer;
 
   // O Spring coleta todos os beans que implementam DamageStrategy e injeta como lista no construtor automaticamente.
   // se eu criar criar um PoisonDamage implements DamageStrategy com @Component, ele entra na lista automaticamente
@@ -27,6 +32,19 @@ public class BugPetServiceImpl implements BugPetService {
     Pet pet = petMapper.toEntity(petDto);
     pet = petRepo.save(pet);
     return petMapper.toDto(pet);
+  }
+
+  private void verifyPetLife(Pet pet, DamageStructureDto damageStructureDto) {
+    if (pet.getLife().compareTo(BigDecimal.ZERO) <= 0) {
+      DiedPetDto diedPetDto = new DiedPetDto();
+      diedPetDto.setId(null);
+      diedPetDto.setPetName(pet.getName());
+      diedPetDto.setPetId(pet.getId().toString());
+      diedPetDto.setDiedAt(LocalDateTime.now());
+      diedPetDto.setLastDamageType(damageStructureDto.getType().name());
+      diedPetDto.setLastDamageValue(damageStructureDto.getValue());
+      petProducer.publishDiedPet(diedPetDto);
+    }
   }
 
   @Override
@@ -43,6 +61,8 @@ public class BugPetServiceImpl implements BugPetService {
     combatSystem.applyDamage(damageStructure.getType(), pet, damageStructure.getValue());
 
     pet = petRepo.save(pet);
+
+    verifyPetLife(pet, damageStructure);
 
     // passo o pet que recebeu o dano
     return petMapper.toDto(pet);
